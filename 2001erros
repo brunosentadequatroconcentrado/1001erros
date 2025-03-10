@@ -1,52 +1,85 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Configurações
+local FOV_RADIUS = 100 -- O valor do FOV, maior valor, maior o campo de visão
+local AIM_ASSIST_STRENGTH = 0.2 -- Ajuste a força da suavização do Aim Assist
+local FIRE_KEY = Enum.KeyCode.MouseButton1 -- A tecla ou botão de disparo (Mouse Button 1 é o clique esquerdo)
 
-local Window = Rayfield:CreateWindow({
-    Name = "Raio Hub v5",
-    LoadingTitle = "Carregando...",
-    LoadingSubtitle = "By SeuNome",
-    ConfigurationSaving = {
-        Enabled = false,
-        FolderName = nil,
-        FileName = "RaioHubV5"
-    },
-    Discord = {
-        Enabled = false,
-        Invite = "",
-        RememberJoins = true
-    },
-    KeySystem = false
-})
-
-local Tab = Window:CreateTab("Principal", 4483362458)
-
-local Section = Tab:CreateSection("Opções")
-
-local Toggle = Tab:CreateToggle({
-    Name = "Ativar Aimbot",
-    CurrentValue = false,
-    Flag = "AimbotToggle",
-    Callback = function(Value)
-        print("Aimbot: ", Value)
+-- Função para encontrar o inimigo mais próximo dentro do FOV
+local function getClosestEnemy()
+    local closestEnemy = nil
+    local closestDistance = math.huge
+    local myCharacter = game.Players.LocalPlayer.Character
+    if myCharacter and myCharacter:FindFirstChild("HumanoidRootPart") then
+        local myPosition = myCharacter.HumanoidRootPart.Position
+        -- Percorre todos os inimigos dentro do FOV
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                local enemyPosition = player.Character.HumanoidRootPart.Position
+                local distance = (myPosition - enemyPosition).magnitude
+                if distance < FOV_RADIUS and distance < closestDistance then
+                    closestEnemy = player
+                    closestDistance = distance
+                end
+            end
+        end
     end
-})
+    return closestEnemy
+end
 
-local Slider = Tab:CreateSlider({
-    Name = "FOV do Aimbot",
-    Range = {10, 300},
-    Increment = 5,
-    Suffix = "px",
-    CurrentValue = 100,
-    Flag = "FOVSlider",
-    Callback = function(Value)
-        print("FOV: ", Value)
+-- Função para calcular a nova posição da mira (com Aim Assist)
+local function aimAtTarget(target)
+    local myCharacter = game.Players.LocalPlayer.Character
+    if myCharacter and target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+        local targetPosition = target.Character.HumanoidRootPart.Position
+        local myPosition = myCharacter.HumanoidRootPart.Position
+        local direction = (targetPosition - myPosition).unit
+        local newAimPosition = myPosition + direction * AIM_ASSIST_STRENGTH
+        return newAimPosition
     end
-})
+    return nil
+end
 
-local Button = Tab:CreateButton({
-    Name = "Executar Script",
-    Callback = function()
-        print("Script Executado!")
+-- Função para disparar a arma com FireServer
+local function fireWeapon(targetPosition)
+    local myWeapon = game.Players.LocalPlayer:FindFirstChild("USP") -- Troque "USP" pelo nome correto da sua arma
+    if myWeapon then
+        local fireArgs = {
+            [1] = myWeapon,
+            [2] = {
+                ["p"] = targetPosition,
+                ["pid"] = 1,
+                ["part"] = workspace:WaitForChild("Mapas"):WaitForChild("Lobby"):WaitForChild("Parede Invisível"):WaitForChild("Parede Invisível"),
+                ["d"] = 64.80586242675781, -- Ajuste conforme necessário
+                ["maxDist"] = 63.28226089477539, -- Ajuste conforme necessário
+                ["h"] = workspace:WaitForChild("Mapas"):WaitForChild("Lobby"):WaitForChild("Parede Invisível"):WaitForChild("Parede Invisível"),
+                ["m"] = Enum.Material.Brick,
+                ["n"] = Vector3.xAxis,
+                ["t"] = 0.9854814238165461,
+                ["sid"] = 2
+            },
+            [3] = true
+        }
+
+        -- Enviar o comando para disparar a arma
+        game:GetService("ReplicatedStorage"):WaitForChild("WeaponsSystem"):WaitForChild("Network"):WaitForChild("WeaponHit"):FireServer(unpack(fireArgs))
     end
-})
+end
 
-Rayfield:LoadConfiguration()
+-- Função principal para encontrar o alvo e disparar
+local function autoAimAndFire()
+    local target = getClosestEnemy()
+    if target then
+        local aimPosition = aimAtTarget(target)
+        if aimPosition then
+            -- Verifica se o botão de disparo foi pressionado
+            if game:GetService("UserInputService"):IsKeyDown(FIRE_KEY) then
+                fireWeapon(aimPosition) -- Disparar a arma
+            end
+        end
+    end
+end
+
+-- Loop para monitorar e disparar automaticamente quando a tecla de disparo for pressionada
+while true do
+    wait(0.1) -- Intervalo para evitar sobrecarga
+    autoAimAndFire()
+end
