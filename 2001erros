@@ -1,0 +1,31 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+local Window = Library.CreateLib("Minha UI - Demo", "DarkTheme")
+
+-- Criando uma aba
+local Tab = Window:NewTab("Principal")
+local Section = Tab:NewSection("Seção de Teste")
+
+-- Botão
+Section:NewButton("Clique Aqui", "Isso é um botão de teste", function()
+    print("Botão pressionado!")
+end)
+
+-- Slider
+Section:NewSlider("Ajuste", "Arraste para mudar o valor", 100, 0, function(value)
+    print("Valor do slider:", value)
+end)
+
+-- Caixa de Texto
+Section:NewTextBox("Digite Algo", "Escreva e pressione Enter", function(text)
+    print("Texto inserido:", text)
+end)
+
+-- Alternador (Toggle)
+Section:NewToggle("Ativar", "Liga e desliga", function(state)
+    if state then
+        print("Ativado!")
+    else
+        print("Desativado!")
+    end
+end)
