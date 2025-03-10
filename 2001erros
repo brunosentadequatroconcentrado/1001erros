@@ -1,31 +1,52 @@
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Window = Library.CreateLib("Minha UI - Demo", "DarkTheme")
+local Window = Rayfield:CreateWindow({
+    Name = "Raio Hub v5",
+    LoadingTitle = "Carregando...",
+    LoadingSubtitle = "By SeuNome",
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = "RaioHubV5"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "",
+        RememberJoins = true
+    },
+    KeySystem = false
+})
 
--- Criando uma aba
-local Tab = Window:NewTab("Principal")
-local Section = Tab:NewSection("Seção de Teste")
+local Tab = Window:CreateTab("Principal", 4483362458)
 
--- Botão
-Section:NewButton("Clique Aqui", "Isso é um botão de teste", function()
-    print("Botão pressionado!")
-end)
+local Section = Tab:CreateSection("Opções")
 
--- Slider
-Section:NewSlider("Ajuste", "Arraste para mudar o valor", 100, 0, function(value)
-    print("Valor do slider:", value)
-end)
-
--- Caixa de Texto
-Section:NewTextBox("Digite Algo", "Escreva e pressione Enter", function(text)
-    print("Texto inserido:", text)
-end)
-
--- Alternador (Toggle)
-Section:NewToggle("Ativar", "Liga e desliga", function(state)
-    if state then
-        print("Ativado!")
-    else
-        print("Desativado!")
+local Toggle = Tab:CreateToggle({
+    Name = "Ativar Aimbot",
+    CurrentValue = false,
+    Flag = "AimbotToggle",
+    Callback = function(Value)
+        print("Aimbot: ", Value)
     end
-end)
+})
+
+local Slider = Tab:CreateSlider({
+    Name = "FOV do Aimbot",
+    Range = {10, 300},
+    Increment = 5,
+    Suffix = "px",
+    CurrentValue = 100,
+    Flag = "FOVSlider",
+    Callback = function(Value)
+        print("FOV: ", Value)
+    end
+})
+
+local Button = Tab:CreateButton({
+    Name = "Executar Script",
+    Callback = function()
+        print("Script Executado!")
+    end
+})
+
+Rayfield:LoadConfiguration()
